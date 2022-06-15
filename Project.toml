@@ -1,0 +1,4 @@
+name = "LDual"
+uuid = "2acc883a-e4cf-4116-9332-01e2b75cbea7"
+authors = ["Eduardo Lenz <eduardobarplenz@gmail.com>"]
+version = "0.1.0"
