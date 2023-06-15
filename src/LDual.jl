@@ -10,6 +10,7 @@
 # Ultima revisão: 18/05/2017 (FUNÇÕES HIPERBÓLICAS)
 # Ultima revisão: 16/09/2019 (Julia 1.*)
 # Ultima revisão: 15/06/2022 (Arrumando para colocar no git) 
+# Ultima revisão: 15/06/2023 (Rotinas do Matheus para ^)
 # 
 # using LDual
 #
@@ -23,6 +24,8 @@ module LDual
 
     # Exporta os metodos deste módulo
     export Dual, +, *, -,/,sin,cos, exp, log, sqrt, abs
+
+    export ^
 
     # exporta as definições basicas de um e zero para o tipo
     # isto estende automaticamente os comandos zeros e ones
@@ -397,6 +400,54 @@ module LDual
     end
 
 
+    #
+    # Rotinas para ^ (Matheus)
+    #
+    import Base:^
+    function ^(x::T,y::Dual) where T<:Number
 
+        # z = x^y
+
+        # Não vamos trabalhar com números complexos por agora
+        #
+        # Dual(((x)^(y.real)), y.dual*(((pi*im)+log(abs(x)))*(x^y.real)))
+        #
+        x>=zero(T) ||  throw(DomainError(x, "Negative values of base for exponentiation are not allowed in the LDual library yet."))
+
+
+        # Cálculo em comum
+        comum = x^(y.real)
+
+        # Caso dz/dy, x constante
+        ifelse(x>0,  Dual(comum, y.dual*log(x)*comum), Dual(comum, 0.0))
+
+    end 
+
+
+    function ^(x::Dual,y::T) where T<:Number
+
+        ifelse(y!=zero(T), Dual(((x.real)^(y)), x.dual*(y*(x.real^(y-1)))),  Dual(((x.real)^(y)), 0.0) )
+    
+    end
+
+
+    function ^(x::Dual,y::Dual)
+
+
+        #
+        # Evita resultado complexos
+        #
+        # Dual(((x.real)^(y.real)), (((x.real)^(y.real))*(((log(
+        # abs(x.real))+(pi*im))*y.dual)+((y.real/x.real)*x.dual))))
+        #
+        x.real >= 0 || throw(DomainError(x, "Negative values of base for exponentiation are not allowed in the LDual library yet."))  
+
+        # Caso x e y variáveis, ou x^x
+    
+        comum = x.real^y.real
+
+        ifelse(x.real>0, Dual(comum, comum*((log(x.real)*y.dual)+((y.real/x.real)*x.dual))), Dual(comum, 0.0) )
+    
+    end
 
 end #LDual
