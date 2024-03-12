@@ -1,7 +1,7 @@
 using Test
 using LDual
 
-@testset "Sum" begin
+@testset "sum" begin
 
     z = LDual.Dual(2.0, 1.0)
 
@@ -17,7 +17,7 @@ using LDual
 
 end
 
-@testset "Subtract" begin
+@testset "subtraction" begin
 
 
     z = LDual.Dual(2.0, 1.0)
@@ -32,7 +32,7 @@ end
 
 end
 
-@testset "Multiplication" begin
+@testset "multiplication" begin
 
 
   z = LDual.Dual(2.0, 1.0)
@@ -49,7 +49,7 @@ end
 end
 
 
-@testset "Division" begin
+@testset "division" begin
     
     z = LDual.Dual(2.0, 1.0)
 
@@ -65,7 +65,7 @@ end
 end
 
 
-@testset "Sine" begin
+@testset "sin" begin
     
     # Initializes the input
     z = LDual.Dual(2.0, 1.0)
@@ -81,7 +81,7 @@ end
 
 end
 
-@testset "Cosine" begin
+@testset "cos" begin
     
 
     # Initializes the input
@@ -98,7 +98,7 @@ end
 
 end
 
-@testset "Tangent" begin
+@testset "tan" begin
 
     # Initializes the input
     z = LDual.Dual(2.0, 1.0)
@@ -114,7 +114,7 @@ end
 
 end
 
-@testset "Exponential" begin
+@testset "exp" begin
    
     # Initializes the input
     z = LDual.Dual(2.0, 1.0)
@@ -133,7 +133,7 @@ end
 
 end
 
-@testset "Tanh" begin
+@testset "tanh" begin
 
     # Initializes the input
      z = LDual.Dual(2.0, 1.0)
@@ -152,7 +152,7 @@ end
  
 end
 
-@testset "Sinh" begin
+@testset "sinh" begin
 
     # Initializes the input
     z = LDual.Dual(2.0, 1.0)
@@ -172,7 +172,7 @@ end
 end
 
 
-@testset "Cosh" begin
+@testset "cosh" begin
 
     # Initializes the input
     z = LDual.Dual(2.0, 1.0)
@@ -204,6 +204,85 @@ end
 
     # Evaluates the derivative analytically
     df_analytic = 3/z.real
+
+    # Tests it
+    @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
+
+@testset "log10" begin
+    
+     # Initializes the input
+     z = LDual.Dual(2.0, 1.0)
+
+     # Tests the derivative 
+     f(x) = 3*log10(x)
+ 
+     # Gets the derivative
+     df = f(z).dual
+ 
+     # Evaluates the derivative analytically
+     df_analytic = 3/(log(10)*z.real)
+ 
+     # Tests it
+     @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
+
+@testset "log any base" begin
+
+     # Initializes the input
+     z = LDual.Dual(2.0, 1.0)
+
+     # Defines the base of the logarithm
+     base_log = 2.0
+ 
+     # Tests the derivative 
+     f(x) = 3*log(base_log, x)
+ 
+     # Gets the derivative
+     df = f(z).dual
+ 
+     # Evaluates the derivative analytically
+     df_analytic = 3/(log(base_log)*z.real)
+ 
+     # Tests it
+     @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
+
+@testset "sqrt" begin
+
+     # Initializes the input
+     z = LDual.Dual(2.0, 1.0)
+
+     # Tests the derivative 
+     f(x) = 3*sqrt(x)
+ 
+     # Gets the derivative
+     df = f(z).dual
+ 
+     # Evaluates the derivative analytically
+     df_analytic = 3*0.5/sqrt(z.real)
+ 
+     # Tests it
+     @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
+
+@testset "abs" begin
+
+    # Initializes the input
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+    f(x) = 3*abs(x)
+
+    # Gets the derivative
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+    df_analytic = 3*sign(z.real)
 
     # Tests it
     @test isapprox(df-df_analytic,0,atol=1E-12)
