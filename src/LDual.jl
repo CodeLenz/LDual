@@ -11,6 +11,7 @@
 # Ultima revisão: 16/09/2019 (Julia 1.*)
 # Ultima revisão: 15/06/2022 (Arrumando para colocar no git) 
 # Ultima revisão: 15/06/2023 (Rotinas do Matheus para ^)
+# Últime revisão: 11/03/2024 (Adequação e melhoria de operações)
 # 
 # using LDual
 #
@@ -22,432 +23,635 @@
 #
 module LDual
 
-    # Exporta os metodos deste módulo
-    export Dual, +, *, -,/,sin,cos, exp, log, sqrt, abs
+    # Exports some basic functions from Julia
 
-    export ^
+    export Dual, +, *, -,/,sin,cos, exp, log, sqrt, abs, ^
 
-    # exporta as definições basicas de um e zero para o tipo
-    # isto estende automaticamente os comandos zeros e ones
+    # Exports the definitions of one and zero to extend them
+
     export one, zero
 
-    # Metodo de conversão Int e Float para dual
+    # Exports a method to convert numbers to dual format
+
     export convert
 
-    # Exporta as operações sobre arrays
+    # Exports operations over arrays
+
     export transpose, dot, Rand, norm
 
-    # Define o tipo básico - Número Dual
-    # real -> parte real
-    # dual -> parte dual
-    struct  Dual #<:Number
-	     real::Float64
-	     dual::Float64
+    # Defines the basic dual type
+
+    struct Dual
+
+        real::Float64
+
+        dual::Float64
+
     end
 
-    #################################################
-    #       DEFINIÇÕES DAS IDENTIDADES
-    #################################################
+    ####################################################################
+    #                          Some identities                         #
+    ####################################################################
 
-    # Identidade multiplicativa
+    # Multiplicative identity
+
     import Base:one
+
     function one(T::Type{Dual})
-        return Dual(1.0,0.0)
-     end
 
-    # Identidade aditiva
+        return Dual(1.0, 0.0)
+
+    end
+
+    # Aditive identity
+
     import Base:zero
+
     function zero(T::Type{Dual})
-        return Dual(0.0,0.0)
-     end
+
+        return Dual(0.0, 0.0)
+
+    end
 
     import Base:zero
+
     function zero(a::Dual)
-        return Dual(0.0,0.0)
-     end
 
-    # Converte um número "normal" para Dual
+        return Dual(0.0, 0.0)
+
+    end
+
+    # Converts a number to dual
+
     import Base:convert
+
     function convert(::Type{Dual},x::Number)
-       Dual(x,0.0)
+
+        return Dual(x, 0.0)
+
     end
 
+    ####################################################################
+    #                         Basic operations                         #
+    ####################################################################
 
-    ############################################################
-    #       DEFINIÇÕES DAS OPERAÇÕES BÁSICAS
-    #
-    # Lembrando que a parte dual é sempre a derivada
-    # da operação em relação a entrada e a parte
-    # primal (real) é a própria operação * dual (liga/desliga)
-    ############################################################
+    # Let z = f(x), where z and x are dual numbers. The real part of z 
+    # is the value of the function f evaluated at the real part of x,
+    # while the dual part of z is the derivative of f evaluated at the
+    # real part of x but multiplied by the dual part of x
 
-    # SOMA
+    # Sum of two numbers
+
     import Base:+
+
     function +(x::Dual, y::Dual)
-	      p = x.real + y.real
-	      d = x.dual + y.dual
-         Dual( p , d )
+
+        p = x.real + y.real
+
+        d = x.dual + y.dual
+
+        return Dual(p, d)
+
     end
 
-    # PRODUTO
+    # Product of two numbers
+
     import Base:*
+
     function *(x::Dual, y::Dual)
-	    p = x.real*y.real
-	    d = x.real*y.dual + x.dual*y.real
-	    Dual( p , d )
+
+        p = x.real*y.real
+
+        d = x.real*y.dual + x.dual*y.real
+
+        return Dual(p, d)
+
     end
 
+    # Negation of a number
 
-    # NEGATE
     import Base:-
+
     function -(x::Dual)
-	    p = -x.real
-	    d = -x.dual
-	    Dual( p , d )
+
+        p = -x.real
+
+        d = -x.dual
+
+        return Dual(p, d)
+
     end
 
-    # SUBTRAI
+    # Subtraction of two numbers
+
     import Base:-
+
     function -(x::Dual,y::Dual)
-	    y1 = -y
-	    return x + y1
+
+        p = x.real - y.real
+
+        d = x.dual - y.dual
+
+        return Dual(p, d)
+
     end
 
+    # Division between two numbers
 
-    #X/Y
     import Base:/
+
     function /(x::Dual,y::Dual)
 
-	   # Evitamos y.real nulo
-	   @assert y.real!=0
+        # Catches the case when the real part of the denominator is null
 
-	   # Calcula a parte 1/y
-	   um   =  1.0/y.real
-	   dois = -1*y.dual/(y.real^2)
+        @assert y.real!=0
 
-	   # Devolve o valor
-	   return x*Dual(um,dois)
+        # Calculates the function and its derivative
+
+        function_value = 1.0/y.real
+
+        derivative_value = -1*y.dual/(y.real^2)
+
+        # Returns the dual tuple
+
+        return x*Dual(function_value, derivative_value)
 
     end
 
-    # SENO
+    # Sine function
+
     import Base:sin
+
     function sin(x::Dual)
-	    p = sin(x.real)
-	    d = cos(x.real)*x.dual
-	    Dual( p , d )
+
+        p = sin(x.real)
+
+        d = cos(x.real)*x.dual
+
+        return Dual(p, d)
+
     end
 
-    # COSSENO
+    # Cosine
+
     import Base:cos
+
     function cos(x::Dual)
-	    p = cos(x.real)
-	    d = -sin(x.real)*x.dual
-	    Dual( p , d )
+
+        p = cos(x.real)
+
+        d = -sin(x.real)*x.dual
+
+        return Dual(p, d)
+
     end
 
+    # Tangent
 
-    # EXP
+    import Base:tan
+
+    function tan(x::Dual)
+
+        # Avoids division by zero by addressing x.real=pi/2 and -pi/2
+
+        if isodd(abs(div(x.real, (pi/2)))) && mod(x.real, (pi/2))==0
+
+            throw("Tangent is not differentiable at x=", x.real)
+
+        else
+
+            return Dual(tan(x.real), (1/(cos(x.real)^2))*x.dual)
+
+        end
+
+    end
+
+    # Exponential
+
     import Base:exp
+
     function exp(x::Dual)
-	    p = exp(x.real)
-	    d = p*x.dual
-	    Dual( p , d )
+
+        p = exp(x.real)
+
+        d = p*x.dual
+
+        return Dual(p, d)
+
     end
 
-    # TANH - em função de exp
+    # Hyperbolic tangent
+
     import Base:tanh
+
     function tanh(x::Dual)
 
-           e2x = exp(2*x)
-           return (e2x-1.0)/(e2x+1.0)
+        e2x = exp(2*x)
+
+        return ((e2x-1.0)/(e2x+1.0))
 
     end
 
-    # SINH - em função de exp
+    # Hyperbolic sine
+
     import Base:sinh
+
     function sinh(x::Dual)
 
-           return (1/2)*(exp(x)-exp(-x))
+        return ((exp(x)-exp(-x))/2)
 
     end
 
-    # COSH - em função de exp
+    # Hyperbolic cosine
+
     import Base:cosh
+
     function cosh(x::Dual)
 
-           return (1/2)*(exp(x)+exp(-x))
+        return ((exp(x)+exp(-x))/2)
 
     end
 
+    # Natural logarithm
 
-    # LOG (LN..)
     import Base:log
+
     function log(x::Dual)
 
-	    # Evita divisao por zero
-	    @assert x.real != 0
+        # Avoids division by zero
 
-	    p = log(x.real)
-	    d = x.dual/x.real
-	    Dual( p , d )
+        @assert x.real!=0
+
+        p = log(x.real)
+
+        d = x.dual/x.real
+
+        return Dual(p, d)
+
     end
 
-    # SQRT
+    # Logarithm of generic base
+
+    import Base:log
+
+    function log(a::Float64, x::Dual)
+
+        # Returns the value of the logarithm and the derivative
+
+        return Dual(log(a, x.real), (x.dual/(log(a)*x.real)))
+
+    end
+
+    # Logarithm of base 10
+
+    import Base:log
+
+    function log10(x::Dual)
+
+        return log(10, x)
+
+    end
+
+    # Square root
+
     import Base:sqrt
+
     function sqrt(x::Dual)
 
-	    # Evita divisao por zero
-	    @assert x.real != 0
+        # Avoids division by zero
 
-	    p = sqrt(x.real)
-	    d = x.dual/(2*sqrt(x.real))
-	    Dual( p , d )
+        @assert x.real!=0
+
+        p = sqrt(x.real)
+
+        d = x.dual/(2*sqrt(x.real))
+
+        return Dual(p, d)
+
     end
 
-    # ABS
+    # Absolute value
+
     import Base:abs
+
     function abs(x::Dual)
 
-        # Evita divisao por zero
-        @assert x.real != 0
+        # Avoids division by zero
+
+        @assert x.real!=0
 
         p = abs(x.real)
+
         d = x.dual*(x.real/abs(x.real))
 
-        Dual( p , d)
+        return Dual(p, d)
+
     end
 
-    #################################################
-    #               CORNER CASES
-    #################################################
+    ####################################################################
+    #       Special cases between common numbers and dual numbers      #
+    ####################################################################
 
-    # FACILITA A MULTIPLICACAO POR UMA CTE NAO DUAL,
-    function *(x, y::Dual)
+    # Sum of dual number with non-dual number
 
-	    # Trasforma x em dual
-	    x1 = Dual(x,0.0)
-
-	    # Multiplica
-	    x1*y
-    end
-
-    function *(x::Dual, y)
-
-	    # Trasforma y em dual
-	    y1 = Dual(y,0.0)
-
-	    # Multiplica
-	    x*y1
-    end
-
-    # FACILITA A SOMA POR UMA CTE NAO DUAL
     function +(x,y::Dual)
 
-	   # Transforma x em dual
-	   x1 = Dual(x,0.0)
-
-	   # Soma
-	   x1 + y
+        # Sums them
+        
+        return Dual(x+y.real, y.dual)
 
     end
 
     function +(x::Dual,y)
 
-	   # Transforma y em dual
-	   y1 = Dual(y,0.0)
+        # Sums them
 
-	   # Soma
-	   x + y1
+        return Dual(x.real+y, x.dual)
 
     end
 
-    # FACILITA A SUBTR POR UMA CTE NAO DUAL
+    # Subtraction of dual number by non-dual number
+
     function -(x,y::Dual)
 
-	   # Transforma x em dual
-	   x1 = Dual(x,0.0)
+        # Subtracts them
 
-	   # Subtrai
-	   x1 - y
+        return Dual(x-y.real, -y.dual)
 
     end
 
     function -(x::Dual,y)
 
-	   # Transforma y em dual
-	   y1 = Dual(y,0.0)
+        # Subtracts them
 
-	   # Subtrai
-	   x - y1
+        return Dual(x.real-y, x.dual)
 
     end
 
+    # Multiplication of dual number by non-dual number
 
-    #################################################
-    #       DEFINIÇÕES VETORIAS - Em teste
-    #################################################
+    function *(x, y::Dual)
 
-    # TRANSPOSE
+        # Multiplies both
+
+        return Dual(x*y.real, x*y.dual)
+
+    end
+
+    function *(x::Dual, y)
+
+        # Multiplies both
+
+        return Dual(y*x.real, y*x.dual)
+
+    end
+
+    # Division of dual number by non-dual number
+
+    function /(x, y::Dual)
+
+        # Catches the case when the real part of the denominator is null
+
+        @assert y.real!=0
+
+        # Calculates the function and its derivative
+
+        function_value = x/y.real
+
+        derivative_value = -x*y.dual/(y.real^2)
+
+        # Returns the dual tuple
+
+        return Dual(function_value, derivative_value)
+
+    end
+
+    function /(x::Dual, y)
+
+        # Multiplies both
+
+        return Dual(x.real/y, x.dual/y)
+
+    end
+
+    ####################################################################
+    #                   Vector and matrix definitions                  #
+    ####################################################################
+
+    # Transpose operation for vectors
+
     import LinearAlgebra:transpose
-    function transpose(A::Array{Dual})
 
-       # Verifica a dimensão de A
-       dims = size(A)
+    function transpose(A::Vector{Dual})
 
-       # Vamos definir transposta para vetor e matriz
-       if length(dims)==1
-          return reshape(A, 1, length(A))
-       elseif length(dims)==2
-          return  permutedims(A, (2, 1))
-       else
-           error("Transpose dual -> somente arrays com dimensão 1 ou 2")
-       end
+        # Gets the dimensions of A
 
+        dims = size(A)
+
+        return reshape(A, 1, length(A))
 
     end
 
+    # Transpose operation for matrices
 
-    # PRODUTO INTERNO
-    import LinearAlgebra:dot
-    function dot(A::Vector{Dual},B::Vector{Dual})
-	    soma = Dual(0.0, 0.0)
-	    for i=1:length(A)
-		    soma += A[i]*B[i]
-	    end
-        return soma
-     end
+    import LinearAlgebra:transpose
 
+    function transpose(A::Matrix{Dual})
 
-    # Produto de um escalar por um array
+        # Gets the dimensions of A
+
+        dims = size(A)
+
+        return  permutedims(A, (2, 1))
+
+    end
+
+    # Product of a real scalar by an array
+
     function *(x::Float64,A::Array{Dual})
 
+        # Initializes the output 
 
-           # Aloca a saida
-           V = zeros(A)
+        V = zeros(A)
 
-           # Transforma o x em um numero dual
-           x1 = Dual(x,0.0)
+        # Aplica o produto em cada uma das posições
 
-           # Aplica o produto em cada uma das posições
-           for i in eachindex(A)
-             V[i] = x1*A[i]
-           end
+        for i in eachindex(A)
 
-           return V
+            V[i] = x*A[i]
+
+        end
+
+        return V
 
     end
 
+    # Product of a dual scalar by a float array
 
-    # Produto de um dual por um array
+    function *(x::Dual,A::Array{Float64})
+
+        # Initializes the output 
+
+        V = zeros(A)
+
+        # Aplica o produto em cada uma das posições
+
+        for i in eachindex(A)
+
+            V[i] = x*A[i]
+
+        end
+
+        return V
+
+    end
+
     function *(x::Dual,A::Array{Dual})
 
+        # Initializes the output 
 
-           # Aloca a saida
-           V = zeros(A)
+        V = zeros(A)
 
-           # Aplica o produto em cada uma das posições
-           for i in eachindex(A)
-             V[i] = x*A[i]
-           end
+        # Aplica o produto em cada uma das posições
 
-           return V
+        for i in eachindex(A)
+
+            V[i] = x*A[i]
+
+        end
+
+        return V
 
     end
 
+    # Dot product
 
-    # RAND PARA ARRAYS - Aqui estou com uma dificuldade pois está dando
-    # conflito com
+    import LinearAlgebra:dot
+
+    function dot(A::Vector{Dual},B::Vector{Dual})
+
+        return transpose(A)*B
+
+    end
+
+    import LinearAlgebra:dot
+
+    function dot(A::Vector{Float64},B::Vector{Dual})
+
+        return transpose(A)*B
+
+    end
+
+    import LinearAlgebra:dot
+
+    function dot(A::Vector{Dual},B::Vector{Float64})
+
+        return transpose(A)*B
+
+    end
+
+    # Rand function for arrays
     #   rand(T::Type, d1::Integer, dims::Integer...) at random.jl:232
     #   rand(T::Type{FD.dual}, dims...) at /home/lenz/Dropbox/dif_automatica.jl:245
     # VOU USAR Rand
     #import Base.rand
+
     function Rand(T::Type{Dual}, dims...)
 
-         # Aloca array
-         V = Array{T}(undef,dims)
+        # Initializes the array
 
-         # Inicializa todas as posições como um e dual nulo
-         for i in eachindex(V)
+        V = Array{T}(undef,dims)
+
+        # Initializes all the dual values as null
+
+        for i in eachindex(V)
+
             V[i] = Dual(rand(), 0.0)
-         end
 
-         # Retorna o V completo
-         return V
+        end
+
+        # Returns the array
+
+        return V
 
     end
-
 
     #
     # calcula a norma 2 - Só a 2 !
     #
     import LinearAlgebra:norm
-    function norm(A::Vector{Dual},p=2)
+    function norm(A::Vector{Dual}, p=2)
 
-       # Verifica se p é 2 (norma Euclidiana)
-       p==2 || throw("LDual::norm nonly p=2 is implemented")
+        # Verifies wheter the asked norm is two
+        p==2 || throw("LDual::norm p=2 only is implemented")
 
-       # Converte para vetor
-       a = vec(A)
+        # Converts to vector
 
-       # Faz o produto interno
-       prod = dot(a,a)
+        a = vec(A)
 
-       # Retorna a raiz
-       sqrt(prod)
+        # Evaluates the inner product
 
+        prod = dot(a, a)
+
+        # Returns the square root
+
+        return sqrt(prod)
 
     end
 
+    ####################################################################
+    #                 Special cases for exponentiation                 #
+    ####################################################################
 
-    #
-    # Rotinas para ^ (Matheus)
-    #
     import Base:^
+
+    # x^y, where x is not dual
+
     function ^(x::T,y::Dual) where T<:Number
 
-        # z = x^y
-
-        # Não vamos trabalhar com números complexos por agora
-        #
         # Dual(((x)^(y.real)), y.dual*(((pi*im)+log(abs(x)))*(x^y.real)))
-        #
-        x>=zero(T) ||  throw(DomainError(x, "Negative values of base for exponentiation are not allowed in the LDual library yet."))
 
+        x>=zero(T) || throw(DomainError(x, "Negative values of base fo",
+         "r exponentiation are not allowed in the LDual library yet."))
 
-        # Cálculo em comum
-        comum = x^(y.real)
+        # Common evaluation
+
+        common_calc = x^(y.real)
 
         # Caso dz/dy, x constante
-        ifelse(x>0,  Dual(comum, y.dual*log(x)*comum), Dual(comum, 0.0))
+        ifelse(x>0,  Dual(common_calc, y.dual*log(x)*common_calc), Dual(
+         common_calc, 0.0))
 
     end 
 
+    # x^y, where x is dual and y is not dual
 
     function ^(x::Dual,y::T) where T<:Number
 
-        ifelse(y!=zero(T), Dual(((x.real)^(y)), x.dual*(y*(x.real^(y-1)))),  Dual(((x.real)^(y)), 0.0) )
+        ifelse(y!=zero(T), Dual(((x.real)^(y)), x.dual*(y*(x.real^(y-1))
+         )),  Dual(((x.real)^(y)), 0.0) )
     
     end
 
+    # x^y, where both are dual
 
     function ^(x::Dual,y::Dual)
 
-
-        #
-        # Evita resultado complexos
+        # Avoids complex results
         #
         # Dual(((x.real)^(y.real)), (((x.real)^(y.real))*(((log(
         # abs(x.real))+(pi*im))*y.dual)+((y.real/x.real)*x.dual))))
-        #
-        x.real >= 0 || throw(DomainError(x, "Negative values of base for exponentiation are not allowed in the LDual library yet."))  
+
+        x.real >= 0 || throw(DomainError(x, "Negative values of base f",
+         "or exponentiation are not allowed in the LDual library yet."))  
 
         # Caso x e y variáveis, ou x^x
     
-        comum = x.real^y.real
+        common_calc = x.real^y.real
 
-        ifelse(x.real>0, Dual(comum, comum*((log(x.real)*y.dual)+((y.real/x.real)*x.dual))), Dual(comum, 0.0) )
+        ifelse(x.real>0, Dual(common_calc, common_calc*((log(x.real)*y.
+         dual)+((y.real/x.real)*x.dual))), Dual(common_calc, 0.0) )
     
     end
 
-end #LDual
+end 
