@@ -170,3 +170,42 @@ end
     @test isapprox(df-df_analytic,0,atol=1E-12)
 
 end
+
+
+@testset "Cosh" begin
+
+    # Initializes the input
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+    f(x) = 3*sinh(x)
+
+    # Gets the derivative
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+    df_analytic = 3*cosh(z.real)
+
+    # Tests it
+    @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
+
+@testset "log" begin
+
+    # Initializes the input
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+    f(x) = 3*log(x)
+
+    # Gets the derivative
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+    df_analytic = 3/z.real
+
+    # Tests it
+    @test isapprox(df-df_analytic,0,atol=1E-12)
+
+end
