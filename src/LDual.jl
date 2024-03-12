@@ -294,7 +294,7 @@ module LDual
 
     import Base:log
 
-    function log(a::Float64, x::Dual)
+    function log(a::Number, x::Dual)
 
         # Returns the value of the logarithm and the derivative
 
@@ -304,7 +304,7 @@ module LDual
 
     # Logarithm of base 10
 
-    import Base:log
+    import Base:log10
 
     function log10(x::Dual)
 
@@ -435,6 +435,61 @@ module LDual
     end
 
     ####################################################################
+    #                 Special cases for exponentiation                 #
+    ####################################################################
+
+    import Base:^
+
+    # x^y, where x is not dual
+
+    function ^(x::T,y::Dual) where T<:Number
+
+        # Dual(((x)^(y.real)), y.dual*(((pi*im)+log(abs(x)))*(x^y.real)))
+
+        x>=zero(T) || throw(DomainError(x, "Negative values of base fo",
+         "r exponentiation are not allowed in the LDual library yet."))
+
+        # Common evaluation
+
+        common_calc = x^(y.real)
+
+        # Caso dz/dy, x constante
+        ifelse(x>0,  Dual(common_calc, y.dual*log(x)*common_calc), Dual(
+         common_calc, 0.0))
+
+    end 
+
+    # x^y, where x is dual and y is not dual
+
+    function ^(x::Dual,y::T) where T<:Number
+
+        ifelse(y!=zero(T), Dual(((x.real)^(y)), x.dual*(y*(x.real^(y-1))
+         )),  Dual(((x.real)^(y)), 0.0) )
+    
+    end
+
+    # x^y, where both are dual
+
+    function ^(x::Dual,y::Dual)
+
+        # Avoids complex results
+        #
+        # Dual(((x.real)^(y.real)), (((x.real)^(y.real))*(((log(
+        # abs(x.real))+(pi*im))*y.dual)+((y.real/x.real)*x.dual))))
+
+        x.real >= 0 || throw(DomainError(x, "Negative values of base f",
+         "or exponentiation are not allowed in the LDual library yet."))  
+
+        # Caso x e y variáveis, ou x^x
+    
+        common_calc = x.real^y.real
+
+        ifelse(x.real>0, Dual(common_calc, common_calc*((log(x.real)*y.
+         dual)+((y.real/x.real)*x.dual))), Dual(common_calc, 0.0) )
+    
+    end
+
+    ####################################################################
     #                   Vector and matrix definitions                  #
     ####################################################################
 
@@ -486,9 +541,7 @@ module LDual
 
     end
 
-    # Product of a dual scalar by a float array
-
-    function *(x::Dual,A::Array{Float64})
+    function *(A::Array{Dual}, x::Float64)
 
         # Initializes the output 
 
@@ -505,6 +558,46 @@ module LDual
         return V
 
     end
+
+    # Product of a dual scalar by a float array
+
+    function *(x::Dual, A::Array{Float64})
+
+        # Initializes the output 
+
+        V = zeros(A)
+
+        # Aplica o produto em cada uma das posições
+
+        for i in eachindex(A)
+
+            V[i] = x*A[i]
+
+        end
+
+        return V
+
+    end
+
+    function *(A::Array{Float64}, x::Dual)
+
+        # Initializes the output 
+
+        V = zeros(A)
+
+        # Aplica o produto em cada uma das posições
+
+        for i in eachindex(A)
+
+            V[i] = x*A[i]
+
+        end
+
+        return V
+
+    end
+
+    # 
 
     function *(x::Dual,A::Array{Dual})
 
@@ -597,61 +690,6 @@ module LDual
 
         return sqrt(prod)
 
-    end
-
-    ####################################################################
-    #                 Special cases for exponentiation                 #
-    ####################################################################
-
-    import Base:^
-
-    # x^y, where x is not dual
-
-    function ^(x::T,y::Dual) where T<:Number
-
-        # Dual(((x)^(y.real)), y.dual*(((pi*im)+log(abs(x)))*(x^y.real)))
-
-        x>=zero(T) || throw(DomainError(x, "Negative values of base fo",
-         "r exponentiation are not allowed in the LDual library yet."))
-
-        # Common evaluation
-
-        common_calc = x^(y.real)
-
-        # Caso dz/dy, x constante
-        ifelse(x>0,  Dual(common_calc, y.dual*log(x)*common_calc), Dual(
-         common_calc, 0.0))
-
     end 
 
-    # x^y, where x is dual and y is not dual
-
-    function ^(x::Dual,y::T) where T<:Number
-
-        ifelse(y!=zero(T), Dual(((x.real)^(y)), x.dual*(y*(x.real^(y-1))
-         )),  Dual(((x.real)^(y)), 0.0) )
-    
-    end
-
-    # x^y, where both are dual
-
-    function ^(x::Dual,y::Dual)
-
-        # Avoids complex results
-        #
-        # Dual(((x.real)^(y.real)), (((x.real)^(y.real))*(((log(
-        # abs(x.real))+(pi*im))*y.dual)+((y.real/x.real)*x.dual))))
-
-        x.real >= 0 || throw(DomainError(x, "Negative values of base f",
-         "or exponentiation are not allowed in the LDual library yet."))  
-
-        # Caso x e y variáveis, ou x^x
-    
-        common_calc = x.real^y.real
-
-        ifelse(x.real>0, Dual(common_calc, common_calc*((log(x.real)*y.
-         dual)+((y.real/x.real)*x.dual))), Dual(common_calc, 0.0) )
-    
-    end
-
-end 
+end

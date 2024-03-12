@@ -394,7 +394,7 @@ function test_cosh()
 
     # Evaluates the derivative analytically
 
-    df_analytic = 3*sinh(z.real)
+    df_analytic = 3*cosh(z.real)
 
     # Tests it
 
@@ -408,7 +408,372 @@ function test_cosh()
 
     else 
 
-        println("The derivative of the hyperbolic sine is right.\n")
+        println("The derivative of the hyperbolic cosine is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the natural logarithm 
+
+function test_naturalLogarithm()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = 3*log(x)
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3/z.real
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of the natural logarithm is wrong. The",
+         " value of the analytical derivative is ", df_analytic, " and",
+         " the dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the natural logarithm is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the logarithm of base 10 
+
+function test_logarithm10()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = 3*log10(x)
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3/(log(10)*z.real)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of the logarithm of base 10 is wrong. ",
+         "The value of the analytical derivative is ", df_analytic, " ",
+         "and the dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the logarithm of base 10 is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the logarithm of any base 
+
+function test_logarithmAny()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Defines the base of the logarithm
+
+    base_log = 2.0
+
+    # Tests the derivative 
+
+    f(x) = 3*log(base_log, x)
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3/(log(base_log)*z.real)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of the logarithm of base ", base_log, 
+         " is wrong. The value of the analytical derivative is ",
+         df_analytic, " and the dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the logarithm of base ", base_log,
+         " is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the square root
+
+function test_squareRoot()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = 3*sqrt(x)
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3*0.5/sqrt(z.real)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of the square root is wrong. The value",
+         " of the analytical derivative is ", df_analytic, " and the d",
+         "ual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the square root is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the absolute value
+
+function test_absoluteValue()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = 3*abs(x)
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3*sign(z.real)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of the absolute value is wrong. The va",
+         "lue of the analytical derivative is ", df_analytic, " and th",
+         "e dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the absolute value is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of x^y w.r.t. x
+
+function test_xRaisedY()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = x^3.0
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3*(z.real^2)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of x^y is wrong. The value of the anal",
+         "ytical derivative is ", df_analytic, " and the dual derivati",
+         "ve is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of x^y is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of y^x w.r.t. x
+
+function test_yRaisedX()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = 3^x
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = log(3)*(3^z.real)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of y^x is wrong. The value of the anal",
+         "ytical derivative is ", df_analytic, " and the dual derivati",
+         "ve is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of y^x is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of x^x w.r.t. x
+
+function test_xRaisedX()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = x^x
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = (z.real^z.real)*(log(z.real)+1)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of x^x is wrong. The value of the anal",
+         "ytical derivative is ", df_analytic, " and the dual derivati",
+         "ve is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of x^x is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of x*A
+
+function test_xMultArray()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Tests the derivative 
+
+    f(x) = x^x
+
+    # Gets the derivative
+
+    df = f(z).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = (z.real^z.real)*(log(z.real)+1)
+
+    # Tests it
+
+    if abs(df-df_analytic)>1E-5
+
+        println("The derivative of x^x is wrong. The value of the anal",
+         "ytical derivative is ", df_analytic, " and the dual derivati",
+         "ve is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of x^x is right.\n")
 
         return true 
 
