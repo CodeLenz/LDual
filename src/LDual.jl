@@ -673,7 +673,7 @@ module LDual
     # calcula a norma 2 - Só a 2 !
     #
     import LinearAlgebra:norm
-    function norm(A::Vector{Dual}, p=2)
+    function norm(A::Vector{Dual}, p::Real=2)
 
         # Verifies wheter the asked norm is two
         p==2 || throw("LDual::norm p=2 only is implemented")
