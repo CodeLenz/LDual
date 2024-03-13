@@ -354,7 +354,7 @@ module LDual
 
     # Sum of dual number with non-dual number
 
-    function +(x,y::Dual)
+    function +(x::Number, y::Dual)
 
         # Sums them
         
@@ -362,7 +362,7 @@ module LDual
 
     end
 
-    function +(x::Dual,y)
+    function +(x::Dual, y::Number)
 
         # Sums them
 
@@ -372,7 +372,7 @@ module LDual
 
     # Subtraction of dual number by non-dual number
 
-    function -(x,y::Dual)
+    function -(x::Number, y::Dual)
 
         # Subtracts them
 
@@ -380,7 +380,7 @@ module LDual
 
     end
 
-    function -(x::Dual,y)
+    function -(x::Dual, y::Number)
 
         # Subtracts them
 
@@ -390,7 +390,7 @@ module LDual
 
     # Multiplication of dual number by non-dual number
 
-    function *(x, y::Dual)
+    function *(x::Number, y::Dual)
 
         # Multiplies both
 
@@ -398,7 +398,7 @@ module LDual
 
     end
 
-    function *(x::Dual, y)
+    function *(x::Dual, y::Number)
 
         # Multiplies both
 
@@ -408,7 +408,7 @@ module LDual
 
     # Division of dual number by non-dual number
 
-    function /(x, y::Dual)
+    function /(x::Number, y::Dual)
 
         # Catches the case when the real part of the denominator is null
 
@@ -426,7 +426,7 @@ module LDual
 
     end
 
-    function /(x::Dual, y)
+    function /(x::Dual, y::Number)
 
         # Multiplies both
 
@@ -499,10 +499,6 @@ module LDual
 
     function transpose(A::Vector{Dual})
 
-        # Gets the dimensions of A
-
-        dims = size(A)
-
         return reshape(A, 1, length(A))
 
     end
@@ -513,21 +509,21 @@ module LDual
 
     function transpose(A::Matrix{Dual})
 
-        # Gets the dimensions of A
-
-        dims = size(A)
-
-        return  permutedims(A, (2, 1))
+        return permutedims(A, (2, 1))
 
     end
 
-    # Product of a real scalar by an array
+    ####################################################################
+    #                      Product array by scalar                     #
+    ####################################################################
 
-    function *(x::Float64,A::Array{Dual})
+    # Product of a real scalar by a dual array
+
+    function *(x::T2, A::Array{T, N}) where {T<:Dual, T2<:Number, N}
 
         # Initializes the output 
 
-        V = zeros(A)
+        V = zeros(Dual, size(A))#zeros(A)
 
         # Aplica o produto em cada uma das posições
 
@@ -541,11 +537,11 @@ module LDual
 
     end
 
-    function *(A::Array{Dual}, x::Float64)
+    function *(A::Array{T, N}, x::T2) where {T<:Dual, T2<:Number, N}
 
         # Initializes the output 
 
-        V = zeros(A)
+        V = zeros(Dual, size(A))#zeros(A)
 
         # Aplica o produto em cada uma das posições
 
@@ -561,11 +557,11 @@ module LDual
 
     # Product of a dual scalar by a float array
 
-    function *(x::Dual, A::Array{Float64})
+    function *(x::T2, A::Array{T, N}) where {T<:Number, T2<:Dual, N}
 
         # Initializes the output 
 
-        V = zeros(A)
+        V = zeros(Dual, size(A))#zeros(A)
 
         # Aplica o produto em cada uma das posições
 
@@ -579,11 +575,11 @@ module LDual
 
     end
 
-    function *(A::Array{Float64}, x::Dual)
+    function *(A::Array{T, N}, x::T2) where {T<:Number, T2<:Dual, N}
 
         # Initializes the output 
 
-        V = zeros(A)
+        V = zeros(Dual, size(A))
 
         # Aplica o produto em cada uma das posições
 
@@ -597,13 +593,31 @@ module LDual
 
     end
 
-    # 
+    # Product of a dual scalar by a dual array
 
-    function *(x::Dual,A::Array{Dual})
+    function *(x::T, A::Array{T2, N}) where {T<:Dual, T2<:Dual, N}
 
         # Initializes the output 
 
-        V = zeros(A)
+        V = zeros(Dual, size(A))#zeros(A)
+
+        # Aplica o produto em cada uma das posições
+
+        for i in eachindex(A)
+
+            V[i] = x*A[i]
+
+        end
+
+        return V
+
+    end
+
+    function *(A::Array{T2, N}, x::T) where {T<:Dual, T2<:Dual, N}
+
+        # Initializes the output 
+
+        V = zeros(Dual, size(A))#zeros(A)
 
         # Aplica o produto em cada uma das posições
 
@@ -621,25 +635,37 @@ module LDual
 
     import LinearAlgebra:dot
 
-    function dot(A::Vector{Dual},B::Vector{Dual})
+    function dot(A::Vector{T},B::Vector{T2}) where {T<:Dual, T2<:Dual}
 
-        return transpose(A)*B
+        v = transpose(A)*B
 
-    end
+        # Returns the inner component because the dual vector was trans-
+        # posed
 
-    import LinearAlgebra:dot
-
-    function dot(A::Vector{Float64},B::Vector{Dual})
-
-        return transpose(A)*B
+        return v[1]
 
     end
 
     import LinearAlgebra:dot
 
-    function dot(A::Vector{Dual},B::Vector{Float64})
+    function dot(A::Vector{T},B::Vector{T2}) where {T<:Number, T2<:Dual}
 
-        return transpose(A)*B
+        v = transpose(A)*B
+
+        return v
+
+    end
+
+    import LinearAlgebra:dot
+
+    function dot(A::Vector{T},B::Vector{T2}) where {T<:Dual, T2<:Number}
+
+        v = transpose(A)*B
+
+        # Returns the inner component because the dual vector was trans-
+        # posed
+
+        return v[1]
 
     end
 
@@ -669,13 +695,14 @@ module LDual
 
     end
 
-    #
-    # calcula a norma 2 - Só a 2 !
-    #
+    # Norm p=2
+
     import LinearAlgebra:norm
-    function norm(A::Vector{Dual}, p=2)
+
+    function norm(A::Vector{Dual}, p::Real=2)
 
         # Verifies wheter the asked norm is two
+
         p==2 || throw("LDual::norm p=2 only is implemented")
 
         # Converts to vector
@@ -691,5 +718,49 @@ module LDual
         return sqrt(prod)
 
     end 
+
+    # Defines a function to get the dual components of an array
+
+    function get_dualComponents(A::Array{T,N}) where {T<:Dual, N}
+
+        # Initializes a float array
+
+        A_dual = zeros(Float64, size(A))
+
+        # Iterates through the elements
+
+        for i in eachindex(A_dual)
+
+            A_dual[i] = A[i].dual
+
+        end
+
+        # Returns the dual part
+
+        return A_dual
+
+    end
+
+    # Defines a function to get the real components of an array
+
+    function get_realComponents(A::Array{T,N}) where {T<:Dual, N}
+
+        # Initializes a float array
+
+        A_real = zeros(Float64, size(A))
+
+        # Iterates through the elements
+
+        for i in eachindex(A_real)
+
+            A_real[i] = A[i].real
+
+        end
+
+        # Returns the dual part
+
+        return A_real
+
+    end
 
 end

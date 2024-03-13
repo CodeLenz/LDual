@@ -749,31 +749,183 @@ function test_xMultArray()
 
     z = LDual.Dual(2.0, 1.0)
 
+    # Initializes a dual matrix and a number matrix
+
+    B_dual = [z z^2; z^3 z^4]
+
+    B = [1 2; 3 4]
+
     # Tests the derivative 
 
-    f(x) = x^x
+    f(x, A) = (3*A)+(A*2)+(x*B)+(B*x)+(A*x)+(x*A)
 
     # Gets the derivative
 
-    df = f(z).dual
+    df = LDual.get_dualComponents(f(z, B_dual))
 
     # Evaluates the derivative analytically
 
-    df_analytic = (z.real^z.real)*(log(z.real)+1)
+    dA_analytic = [1.0 2*z.real; 3*(z.real^2) 4*(z.real^3)]
+
+    df_analytic = ((5+(2*z.real))*dA_analytic)+(2*B)+(2*LDual.
+     get_realComponents(B_dual))
 
     # Tests it
 
-    if abs(df-df_analytic)>1E-5
+    if norm(df-df_analytic)>1E-5
 
-        println("The derivative of x^x is wrong. The value of the anal",
-         "ytical derivative is ", df_analytic, " and the dual derivati",
-         "ve is ", df, ".\n")
+        println("The derivative of dual multiplied by array is wrong. ",
+         "The value of the analytical derivative is ", df_analytic, " ",
+         "and the dual derivative is ", df, ".\n")
 
         return false
 
     else 
 
-        println("The derivative of x^x is right.\n")
+        println("The derivative of dual multiplied by array is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of A*X, where X is dual
+
+function test_XArrayMultArray()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Initializes a dual matrix and a number matrix
+
+    B_dual = [z z^2; z^3 z^4]
+
+    B = [1 0; 0 1]
+
+    # Tests the derivative 
+
+    f(A) = (B*A)+(A*B)+(A*A)
+
+    # Gets the derivative
+
+    df = LDual.get_dualComponents(f(B_dual))
+
+    # Evaluates the derivative analytically
+
+    dA_analytic = [1.0 2*z.real; 3*(z.real^2) 4*(z.real^3)]
+
+    df_analytic = (B*dA_analytic)+(dA_analytic*B)+(dA_analytic*LDual.get_realComponents(B_dual))+(
+     LDual.get_realComponents(B_dual)*dA_analytic)
+
+    # Tests it
+
+    if norm(df-df_analytic)>1E-5
+
+        println("The derivative of dual array multiplied by array is w",
+         "rong. The value of the analytical derivative is ",
+         df_analytic, " and the dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of dual array multiplied by array is r",
+         "ight.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the dot product
+
+function test_dotX()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Initializes a dual matrix and a number matrix
+
+    b_dual = [z; z^2; z^3]
+
+    b = [1; 2; 3]
+
+    a = [2; 3; 4]
+
+    # Tests the derivative 
+
+    f(x) = dot(b,x)+dot(x,a)+dot(x,x)
+
+    # Gets the derivative
+
+    df = f(b_dual).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = 3+(10*z.real)+(21*(z.real^2))+(2*z.real)+(4*(z.real^3))+(6*(z.real^5))
+
+    # Tests it
+
+    if norm(df-df_analytic)>1E-5
+
+        println("The derivative of the dual dot product is wrong. The ",
+         "value of the analytical derivative is ", df_analytic, " and ",
+         "the dual derivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the dual dot product is right.\n")
+
+        return true 
+
+    end
+
+end
+
+# Defines a function to test the derivative of the norm p=2
+
+function test_normP2()
+
+    # Initializes the input
+
+    z = LDual.Dual(2.0, 1.0)
+
+    # Initializes a dual matrix and a number matrix
+
+    b_dual = [z; z^2; z^3]
+
+    # Tests the derivative 
+
+    f(x) = norm(x)
+
+    # Gets the derivative
+
+    df = f(b_dual).dual
+
+    # Evaluates the derivative analytically
+
+    df_analytic = (((2*z.real)+(4*(z.real^3))+(6*(z.real^5)))/(2*sqrt((z.real 
+     ^2)+(z.real^4)+(z.real^6))))
+
+    # Tests it
+
+    if norm(df-df_analytic)>1E-5
+
+        println("The derivative of the norm is wrong. The value of the",
+         " analytical derivative is ", df_analytic, " and the dual der",
+         "ivative is ", df, ".\n")
+
+        return false
+
+    else 
+
+        println("The derivative of the norm is right.\n")
 
         return true 
 
