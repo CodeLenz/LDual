@@ -398,7 +398,7 @@ end
 
     # Tests it
 
-    @test isapprox(df-df_analytic,0,atol=1E-5)
+    @test isapprox(norm(df-df_analytic),0,atol=1E-5)
 
 end
 
@@ -433,7 +433,7 @@ end
 
     # Tests it
 
-    @test isapprox(df-df_analytic,0,atol=1E-5)
+    @test isapprox(norm(df-df_analytic),0,atol=1E-5)
 
 end
 
